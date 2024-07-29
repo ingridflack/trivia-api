@@ -1,15 +1,6 @@
 import express from "express";
-import bodyParser from "body-parser";
 import mongoose from "mongoose";
-
-const userSchema = new mongoose.Schema(
-  {
-    id: { type: mongoose.Schema.Types.ObjectId },
-  },
-  { versionKey: false }
-);
-
-const user = mongoose.model("users", userSchema);
+import routes from "./routes/index.js";
 
 mongoose.connect('mongodb://mongo:27017/trivia');
 
@@ -25,18 +16,9 @@ connection.once("open", () => {
 
 const app = express();
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-app.get("/", async (req, res) => {
-  const data = await user.find({});
-  res.send(data);
-});
-
-app.get("/:id", async (req, res) => {
-  const id = req.params.id;
-  const data = await user.findById(id);
-  res.send(data);
-});
+routes(app);
 
 app.listen(3000);
