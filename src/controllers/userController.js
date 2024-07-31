@@ -1,12 +1,12 @@
 import "dotenv/config";
-import { user } from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import UserModel from "../models/User.js";
 
 class UserController {
   static async listUsers(_, res) {
     try {
-      const userList = await user.find({});
+      const userList = await UserModel.find({});
       res.send(userList);
     } catch (err) {
       res.status(500).json({ message: err.message });
@@ -21,7 +21,9 @@ class UserController {
         throw new Error("Passwords do not match");
       }
 
-      const emailAlreadyExists = await user.findOne({ email: req.body.email });
+      const emailAlreadyExists = await UserModel.findOne({
+        email: req.body.email,
+      });
 
       if (emailAlreadyExists) {
         throw new Error("E-mail already exists");
@@ -35,7 +37,7 @@ class UserController {
         password: hashedPassword,
       };
 
-      const newUser = await user.create(userData);
+      const newUser = await UserModel.create(userData);
 
       res
         .status(201)
@@ -57,7 +59,7 @@ class UserController {
         throw new Error("Password are required");
       }
 
-      const userData = await user.findOne({ email: email });
+      const userData = await UserModel.findOne({ email: email });
 
       if (!userData) {
         throw new Error("User not found");
@@ -83,7 +85,10 @@ class UserController {
   static async getUser(req, res) {
     try {
       const id = req.params.id;
-      const userData = await user.findById(id, "-password");
+      const userData = await UserModel.findById(
+        id,
+        "-password -createdAt -__v"
+      );
 
       if (!userData) {
         throw new Error("User not found");
@@ -108,7 +113,9 @@ class UserController {
         password,
       };
 
-      const updatedUser = await user.findByIdAndUpdate(id, body, { new: true });
+      const updatedUser = await UserModel.findByIdAndUpdate(id, body, {
+        new: true,
+      });
 
       if (!updatedUser) {
         throw new Error("User not found");
@@ -125,7 +132,7 @@ class UserController {
   static async deleteUser(req, res) {
     try {
       const id = req.params.id;
-      const deletedData = await user.findByIdAndDelete(id);
+      const deletedData = await UserModel.findByIdAndDelete(id);
 
       if (!deletedData) {
         throw new Error("User not found");

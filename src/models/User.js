@@ -1,8 +1,12 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
+export const userSchema = new mongoose.Schema({
   id: { type: mongoose.Schema.Types.ObjectId },
-  username: { type: String, required: [true, "Username is required."] },
+  username: {
+    type: String,
+    required: [true, "Username is required."],
+    match: [/^\S*$/, "Username should not contain spaces."],
+  },
   name: {
     type: String,
     required: [true, "Name is required."],
@@ -12,6 +16,7 @@ const userSchema = new mongoose.Schema({
     required: [true, "Email is required."],
     trim: true,
     lowercase: true,
+    unique: true,
     match: [
       /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
       "Please fill a valid email address",
@@ -23,9 +28,10 @@ const userSchema = new mongoose.Schema({
     minlength: [8, "Password must be at least 8 characters long"],
   },
   avatar: { type: String, required: [false] },
+  score: { type: Number },
   createdAt: { type: Date, default: Date.now },
 });
 
-const user = mongoose.model("users", userSchema);
+const User = mongoose.model("User", userSchema);
 
-export { user, userSchema };
+export default User;
