@@ -10,9 +10,11 @@ const checkToken = (req, res, next) => {
       throw new Error("No token provided");
     }
 
-    const secret = process.env.JWT_KEY;
+    jwt.verify(token, process.env.JWT_KEY);
 
-    jwt.verify(token, secret);
+    // Set the userId in the request object.
+    const decodedToken = jwt.decode(token, { complete: true });
+    req.userId = decodedToken.payload.id;
 
     next();
   } catch (err) {
