@@ -1,5 +1,16 @@
 import mongoose from "mongoose";
 
+const triviaHistoryItemSchema = new mongoose.Schema({
+  triviaItem: { type: mongoose.Schema.Types.ObjectId, ref: "TriviaItem" },
+  isCorrect: { type: Boolean },
+  responseTime: { type: Number },
+});
+
+const triviaHistorySchema = new mongoose.Schema({
+  trivia: { type: mongoose.Schema.Types.ObjectId, ref: "Trivia" },
+  items: [triviaHistoryItemSchema],
+});
+
 export const userSchema = new mongoose.Schema({
   id: { type: mongoose.Schema.Types.ObjectId },
   username: {
@@ -27,6 +38,7 @@ export const userSchema = new mongoose.Schema({
     required: [true, "Password is required."],
     minlength: [8, "Password must be at least 8 characters long"],
   },
+  triviaHistory: [triviaHistorySchema],
   avatar: { type: String, required: [false] },
   score: { type: Number },
   createdAt: { type: Date, default: Date.now },
