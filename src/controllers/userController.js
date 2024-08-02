@@ -2,11 +2,12 @@ import "dotenv/config";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import UserModel from "../models/User.js";
+import UserService from "../services/UserService.js";
 
 class UserController {
   static async listUsers(_, res) {
     try {
-      const userList = await UserModel.find({});
+      const userList = await UserService.list();
       res.send(userList);
     } catch (err) {
       res.status(500).json({ message: err.message });
@@ -85,14 +86,7 @@ class UserController {
   static async getUser(req, res) {
     try {
       const id = req.params.id;
-      const userData = await UserModel.findById(
-        id,
-        "-password -createdAt -__v"
-      );
-
-      if (!userData) {
-        throw new Error("User not found");
-      }
+      const userData = await UserService.getById(id);
 
       res.status(200).json(userData);
     } catch (err) {
@@ -102,9 +96,8 @@ class UserController {
 
   static async updateUser(req, res) {
     try {
-      const { name, username, avatar, password } = req.body;
-
       const id = req.params.id;
+      const { name, username, avatar, password } = req.body;
 
       const body = {
         name,
@@ -113,13 +106,7 @@ class UserController {
         password,
       };
 
-      const updatedUser = await UserModel.findByIdAndUpdate(id, body, {
-        new: true,
-      });
-
-      if (!updatedUser) {
-        throw new Error("User not found");
-      }
+      const updatedUser = await UserService.update(id, body);
 
       res
         .status(200)
@@ -132,12 +119,7 @@ class UserController {
   static async deleteUser(req, res) {
     try {
       const id = req.params.id;
-      const deletedData = await UserModel.findByIdAndDelete(id);
-
-      if (!deletedData) {
-        throw new Error("User not found");
-      }
-
+      const deletedData = await UserService.delete(id);
       res
         .status(200)
         .json({ message: "Successfully deleted", deleted: deletedData });

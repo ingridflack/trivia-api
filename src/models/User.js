@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const triviaHistoryItemSchema = new mongoose.Schema({
   question: { type: mongoose.Schema.Types.ObjectId, ref: "Question" },
   isCorrect: { type: Boolean },
-  responseTime: { type: Number },
+  answerTime: { type: Number },
 });
 
 const triviaHistorySchema = new mongoose.Schema({
