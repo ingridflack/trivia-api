@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const triviaItemSchema = new mongoose.Schema({
+const questionSchema = new mongoose.Schema({
   id: { type: mongoose.Schema.Types.ObjectId },
   question: { type: String, required: [true, "Question is required."] },
   category: { type: String, required: [true, "Category is required."] },
@@ -8,6 +8,6 @@ const triviaItemSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const TriviaItem = mongoose.model("TriviaItem", triviaItemSchema);
+const Question = mongoose.model("Question", questionSchema);
 
-export default TriviaItem;
+export default Question;

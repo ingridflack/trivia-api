@@ -1,6 +1,6 @@
 import axios from "axios";
 import TriviaModel from "../models/Trivia.js";
-import TriviaItemModel from "../models/TriviaItem.js";
+import QuestionModel from "../models/Question.js";
 import User from "../models/User.js";
 import { isTriviaExpired } from "../utils/isTriviaExpired.js";
 
@@ -18,7 +18,7 @@ class TriviaController {
 
       const { data } = await axios.get(url.toString());
 
-      const triviaItems = await TriviaItemModel.bulkWrite(
+      const questions = await QuestionModel.bulkWrite(
         data.results.map((item) => ({
           insertOne: {
             document: {
@@ -34,12 +34,12 @@ class TriviaController {
         users: [userId],
         category,
         difficulty,
-        questions: Object.values(triviaItems.insertedIds),
+        questions: Object.values(questions.insertedIds),
       });
 
       res.status(200).json({
         message: "Trivia created successfully",
-        triviaItems: data.results,
+        questions: data.results,
         triviaId: trivia._id,
       });
     } catch (err) {
@@ -100,7 +100,7 @@ class TriviaController {
             },
           },
           {
-            path: "triviaHistory.items.triviaItem",
+            path: "triviaHistory.items.question",
             select: "question category difficulty",
           },
         ])

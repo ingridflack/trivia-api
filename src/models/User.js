@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const triviaHistoryItemSchema = new mongoose.Schema({
-  triviaItem: { type: mongoose.Schema.Types.ObjectId, ref: "TriviaItem" },
+  question: { type: mongoose.Schema.Types.ObjectId, ref: "Question" },
   isCorrect: { type: Boolean },
   responseTime: { type: Number },
 });
