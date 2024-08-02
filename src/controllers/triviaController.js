@@ -1,8 +1,8 @@
 import axios from "axios";
-import jsonwebtoken from "jsonwebtoken";
 import TriviaModel from "../models/Trivia.js";
 import TriviaItemModel from "../models/TriviaItem.js";
 import User from "../models/User.js";
+import { isTriviaExpired } from "../utils/isTriviaExpired.js";
 
 class TriviaController {
   static async createTrivia(req, res) {
@@ -70,6 +70,7 @@ class TriviaController {
       user.triviaHistory.push({
         trivia: triviaId,
         items: completedTrivia,
+        status: "completed",
       });
 
       await user.save();
@@ -123,6 +124,22 @@ class TriviaController {
 
       if (!trivia) {
         throw new Error("Trivia not found");
+      }
+
+      if (trivia.status === "expired") {
+        throw new Error("Trivia has expired");
+      }
+
+      if (trivia.status === "completed") {
+        throw new Error("Trivia has already been completed");
+      }
+
+      const triviaIsExpired = isTriviaExpired(trivia);
+
+      if (triviaIsExpired) {
+        trivia.status = "expired";
+        await trivia.save();
+        throw new Error("Trivia has expired");
       }
 
       if (trivia.users.includes(userId)) {
