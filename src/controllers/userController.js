@@ -1,8 +1,6 @@
 import "dotenv/config";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import UserModel from "../models/User.js";
 import UserService from "../services/UserService.js";
+import AuthService from "../services/AuthService.js";
 
 class UserController {
   static async listUsers(_, res) {
@@ -16,29 +14,9 @@ class UserController {
 
   static async registerUser(req, res) {
     try {
-      const { password, passwordConfirmation } = req.body;
+      const body = req.body;
 
-      if (password !== passwordConfirmation) {
-        throw new Error("Passwords do not match");
-      }
-
-      const emailAlreadyExists = await UserModel.findOne({
-        email: req.body.email,
-      });
-
-      if (emailAlreadyExists) {
-        throw new Error("E-mail already exists");
-      }
-
-      const salt = await bcrypt.genSalt(12);
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      const userData = {
-        ...req.body,
-        password: hashedPassword,
-      };
-
-      const newUser = await UserModel.create(userData);
+      const newUser = await AuthService.register(body);
 
       res
         .status(201)
@@ -52,30 +30,7 @@ class UserController {
     try {
       const { email, password } = req.body;
 
-      if (!email) {
-        throw new Error("Email are required");
-      }
-
-      if (!password) {
-        throw new Error("Password are required");
-      }
-
-      const userData = await UserModel.findOne({ email: email });
-
-      if (!userData) {
-        throw new Error("User not found");
-      }
-
-      const checkPassword = await bcrypt.compare(password, userData.password);
-
-      if (!checkPassword) {
-        throw new Error("Invalid password");
-      }
-
-      const secret = process.env.JWT_KEY;
-      const token = jwt.sign({ id: userData._id }, secret, {
-        expiresIn: "1h",
-      });
+      const token = await AuthService.login(email, password);
 
       res.status(200).json({ message: "Successfully logged in", token });
     } catch (err) {
