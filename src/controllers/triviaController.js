@@ -152,6 +152,19 @@ class TriviaController {
       res.status(500).json({ message: err.message });
     }
   }
+
+  static async getCategories(_, res) {
+    try {
+      const { data } = await axios.get("https://opentdb.com/api_category.php");
+
+      res.status(200).json({
+        message: "Categories retrieved successfully",
+        categories: data.trivia_categories,
+      });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
 }
 
 export default TriviaController;

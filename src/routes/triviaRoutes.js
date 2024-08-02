@@ -12,5 +12,6 @@ routes.post(
   checkToken,
   TriviaController.acceptInvite
 );
+routes.get("/trivia/categories", checkToken, TriviaController.getCategories);
 
 export default routes;
