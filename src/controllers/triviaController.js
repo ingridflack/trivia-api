@@ -1,7 +1,7 @@
 import TriviaService from "../services/TriviaService.js";
 
 class TriviaController {
-  static async createTrivia(req, res) {
+  static async createTrivia(req, res, next) {
     try {
       const userId = req.userId;
       const { amount, category, difficulty, type } = req.query;
@@ -26,11 +26,11 @@ class TriviaController {
         trivia: populatedTrivia,
       });
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      next(err);
     }
   }
 
-  static async completeTrivia(req, res) {
+  static async completeTrivia(req, res, next) {
     try {
       const userId = req.userId;
       const triviaId = req.params.id;
@@ -42,11 +42,11 @@ class TriviaController {
         message: "Trivia saved successfully",
       });
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      next(err);
     }
   }
 
-  static async getTriviaHistory(req, res) {
+  static async getTriviaHistory(req, res, next) {
     try {
       const userId = req.userId;
 
@@ -57,11 +57,11 @@ class TriviaController {
         trivias: user,
       });
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      next(err);
     }
   }
 
-  static async acceptInvite(req, res) {
+  static async acceptInvite(req, res, next) {
     try {
       const userId = req.userId;
       const { id } = req.params;
@@ -76,11 +76,11 @@ class TriviaController {
         trivia,
       });
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      next(err);
     }
   }
 
-  static async getCategories(_, res) {
+  static async getCategories(_, res, next) {
     try {
       const categories = await TriviaService.getCategories();
 
@@ -89,7 +89,7 @@ class TriviaController {
         categories: categories,
       });
     } catch (err) {
-      res.status(500).json({ message: err.message });
+      next(err);
     }
   }
 }

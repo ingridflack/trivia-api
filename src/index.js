@@ -1,8 +1,10 @@
 import express from "express";
 import mongoose from "mongoose";
 import routes from "./routes/index.js";
+import handleRouteNotFound from "./middlewares/handleRouteNotFound.js";
+import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 
-mongoose.connect('mongodb://mongo:27017/trivia');
+mongoose.connect("mongodb://mongo:27017/trivia");
 
 const connection = mongoose.connection;
 
@@ -20,5 +22,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 routes(app);
+
+app.use(handleRouteNotFound);
+app.use(globalErrorHandler);
 
 app.listen(3000);

@@ -1,3 +1,4 @@
+import NotFound from "../errors/NotFound.js";
 import UserModel from "../models/User.js";
 
 class UserService {
@@ -9,7 +10,7 @@ class UserService {
     const userData = await UserModel.findById(id, "-password -createdAt -__v");
 
     if (!userData) {
-      throw new Error("User not found");
+      throw new NotFound("User not found");
     }
 
     return userData;
@@ -21,7 +22,7 @@ class UserService {
     });
 
     if (!updatedUser) {
-      throw new Error("User not found");
+      next(new NotFound("User not found"));
     }
 
     return updatedUser;
@@ -31,7 +32,7 @@ class UserService {
     const deletedData = await UserModel.findByIdAndDelete(id);
 
     if (!deletedData) {
-      throw new Error("User not found");
+      next(new NotFound("User not found"));
     }
 
     return deletedData;

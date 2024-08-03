@@ -1,13 +1,15 @@
 import bcrypt from "bcrypt";
 import UserModel from "../models/User.js";
 import jwt from "jsonwebtoken";
+import BadRequest from "../errors/BadRequest.js";
+import NotFound from "../errors/NotFound.js";
 
 class AuthService {
   static async register(body) {
     const { password, passwordConfirmation } = body;
 
     if (password !== passwordConfirmation) {
-      throw new Error("Passwords do not match");
+      throw new BadRequest("Passwords do not match");
     }
 
     const emailAlreadyExists = await UserModel.findOne({
@@ -15,7 +17,13 @@ class AuthService {
     });
 
     if (emailAlreadyExists) {
-      throw new Error("E-mail already exists");
+      throw new BadRequest("E-mail already exists");
+    }
+
+    const error = new UserModel(body).validateSync();
+
+    if (error) {
+      throw error;
     }
 
     const salt = await bcrypt.genSalt(12);
@@ -33,32 +41,23 @@ class AuthService {
 
   static async login(email, password) {
     if (!email) {
-      throw new Error("Email are required");
+      throw new BadRequest("Email are required");
     }
 
     if (!password) {
-      throw new Error("Password are required");
+      throw new BadRequest("Password are required");
     }
-
-    // const userData2 = new UserModel({
-    //     email,
-    //     password,
-    //     checkPassword,
-    // });
-
-    // const errors = userData2.validateSync();
-    // console.log(errors);
 
     const userData = await UserModel.findOne({ email: email });
 
     if (!userData) {
-      throw new Error("User not found");
+      throw new NotFound("User not found");
     }
 
     const checkPassword = await bcrypt.compare(password, userData.password);
 
     if (!checkPassword) {
-      throw new Error("Invalid password");
+      throw new BadRequest("Invalid password");
     }
 
     const secret = process.env.JWT_KEY;

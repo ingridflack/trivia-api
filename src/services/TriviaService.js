@@ -3,6 +3,7 @@ import QuestionModel from "../models/Question.js";
 import TriviaModel from "../models/Trivia.js";
 import User from "../models/User.js";
 import { isTriviaExpired } from "../utils/isTriviaExpired.js";
+import BadRequest from "../errors/BadRequest.js";
 
 class TriviaService {
   static async fetchQuestions({ amount, category, difficulty, type }) {
@@ -59,7 +60,7 @@ class TriviaService {
     const user = await User.findById(userId);
 
     if (!user) {
-      throw new Error("User not found");
+      throw new BadRequest("User not found");
     }
 
     const isTriviaCompleted = user.triviaHistory.some(
@@ -67,7 +68,7 @@ class TriviaService {
     );
 
     if (isTriviaCompleted) {
-      throw new Error("Trivia already completed");
+      throw new BadRequest("Trivia already completed");
     }
 
     user.triviaHistory.push({
@@ -104,15 +105,15 @@ class TriviaService {
     const trivia = await TriviaModel.findById(id);
 
     if (!trivia) {
-      throw new Error("Trivia not found");
+      throw new BadRequest("Trivia not found");
     }
 
     if (trivia.status === "expired") {
-      throw new Error("Trivia has expired");
+      throw new BadRequest("Trivia has expired");
     }
 
     if (trivia.status === "completed") {
-      throw new Error("Trivia has already been completed");
+      throw new BadRequest("Trivia has already been completed");
     }
 
     const triviaIsExpired = isTriviaExpired(trivia);
@@ -120,11 +121,11 @@ class TriviaService {
     if (triviaIsExpired) {
       trivia.status = "expired";
       await trivia.save();
-      throw new Error("Trivia has expired");
+      throw new BadRequest("Trivia has expired");
     }
 
     if (trivia.users.includes(userId)) {
-      throw new Error("User already accepted the invitation");
+      throw new BadRequest("User already accepted the invitation");
     }
 
     trivia.users.push(userId);

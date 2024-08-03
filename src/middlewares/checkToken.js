@@ -1,5 +1,6 @@
 import "dotenv/config";
 import jwt from "jsonwebtoken";
+import BaseError from "../errors/BaseError.js";
 
 const checkToken = (req, res, next) => {
   try {
@@ -7,7 +8,7 @@ const checkToken = (req, res, next) => {
     const token = authHeader && authHeader.split(" ")[1];
 
     if (!token) {
-      throw new Error("No token provided");
+      throw new BaseError("No token provided", 401);
     }
 
     jwt.verify(token, process.env.JWT_KEY);
@@ -18,7 +19,7 @@ const checkToken = (req, res, next) => {
 
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Unauthorized" });
+    throw new BaseError("Unauthorized", 401);
   }
 };
 
