@@ -36,7 +36,14 @@ class AuthService {
 
     const newUser = await UserModel.create(userData);
 
-    return newUser;
+    // Remove sensitive data from the response
+    const newUserObj = newUser.toObject();
+
+    delete newUserObj.password;
+    delete newUserObj.__v;
+    delete newUserObj.createdAt;
+
+    return newUserObj;
   }
 
   static async login(email, password) {

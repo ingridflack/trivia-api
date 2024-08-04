@@ -4,6 +4,7 @@ import TriviaModel from "../models/Trivia.js";
 import User from "../models/User.js";
 import { isTriviaExpired } from "../utils/isTriviaExpired.js";
 import BadRequest from "../errors/BadRequest.js";
+import { USER_LIST_PROJECTION } from "../constants/user.js";
 
 class TriviaService {
   static async fetchQuestions({ amount, category, difficulty, type }) {
@@ -81,7 +82,7 @@ class TriviaService {
   }
 
   static async getHistory(userId) {
-    const user = await User.findById(userId)
+    const user = await User.findById(userId, USER_LIST_PROJECTION)
       .populate([
         {
           path: "triviaHistory.trivia",
