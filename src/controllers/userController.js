@@ -4,6 +4,10 @@ import AuthService from "../services/AuthService.js";
 
 class UserController {
   static async listUsers(_, res, next) {
+    /*
+      #swagger.tags = ['Users']
+      #swagger.summary = 'Returns a list of users'
+    */
     try {
       const userList = await UserService.list();
       res.send(userList);
@@ -13,6 +17,16 @@ class UserController {
   }
 
   static async registerUser(req, res, next) {
+    /*
+      #swagger.tags = ['Users']
+      #swagger.summary = 'Registers a new user'
+      #swagger.parameters['obj'] = {
+        in: 'body',
+        description: 'User information',
+        required: true,
+        schema: { $ref: "#/definitions/User" }
+      }
+    */
     try {
       const body = req.body;
 
@@ -27,6 +41,20 @@ class UserController {
   }
 
   static async loginUser(req, res, next) {
+    /*
+      #swagger.auto = false
+      #swagger.tags = ['Users']
+      #swagger.summary = 'Logs in a user'
+      #swagger.parameters['body'] = {
+            in: 'body',
+            description: 'User data.',
+            required: true,
+            schema: {
+                email: "test@email.com",
+                password: "1234"
+            }
+        }
+    */
     try {
       const { email, password } = req.body;
 
@@ -39,6 +67,12 @@ class UserController {
   }
 
   static async getUser(req, res, next) {
+    /*
+      #swagger.tags = ['Users']
+      #swagger.summary = 'Returns a user by ID'
+      #swagger.parameters['id'] = { description: 'User ID' }
+      #swagger.security = [{ "bearerAuth": [] }]
+    */
     try {
       const id = req.params.id;
       const userData = await UserService.getById(id, next);
@@ -50,6 +84,17 @@ class UserController {
   }
 
   static async updateUser(req, res, next) {
+    /*
+      #swagger.tags = ['Users']
+      #swagger.summary = 'Updates a user'
+      #swagger.parameters['id'] = { description: 'User ID' }
+      #swagger.parameters['obj'] = {
+        in: 'body',
+        description: 'User information',
+        required: true,
+        schema: { $ref: "#/definitions/User" }
+      }
+    */
     try {
       const id = req.params.id;
       const { name, username, avatar, password } = req.body;
@@ -72,6 +117,11 @@ class UserController {
   }
 
   static async deleteUser(req, res, next) {
+    /*
+      #swagger.tags = ['Users']
+      #swagger.summary = 'Deletes a user'
+      #swagger.parameters['id'] = { description: 'User ID' }
+    */
     try {
       const id = req.params.id;
       const deletedData = await UserService.delete(id);

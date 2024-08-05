@@ -2,6 +2,10 @@ import TriviaService from "../services/TriviaService.js";
 
 class TriviaController {
   static async createTrivia(req, res, next) {
+    /*
+      #swagger.tags = ['Trivia']
+      #swagger.summary = 'Generates a new trivia'
+    */
     try {
       const userId = req.userId;
       const { amount, category, difficulty, type } = req.query;
@@ -31,6 +35,16 @@ class TriviaController {
   }
 
   static async completeTrivia(req, res, next) {
+    /*
+      #swagger.tags = ['Trivia']
+      #swagger.summary = 'Completes a trivia'
+      #swagger.parameters['obj'] = {
+        in: 'body',
+        description: 'Trivia information',
+        required: true,
+        schema: { $ref: "#/definitions/Trivia" }
+      }
+    */
     try {
       const userId = req.userId;
       const triviaId = req.params.id;
@@ -47,6 +61,12 @@ class TriviaController {
   }
 
   static async getTriviaHistory(req, res, next) {
+    /*
+      #swagger.tags = ['Trivia']
+      #swagger.summary = 'Returns the list of trivias'
+      #swagger.parameters['id'] = { description: 'User ID' }
+
+    */
     try {
       const userId = req.userId;
 
@@ -62,6 +82,11 @@ class TriviaController {
   }
 
   static async acceptInvite(req, res, next) {
+    /*
+      #swagger.tags = ['Trivia']
+      #swagger.summary = 'Accepts a trivia challenge'
+      #swagger.parameters['id'] = { description: 'Trivia ID' }
+    */
     try {
       const userId = req.userId;
       const { id } = req.params;
@@ -81,6 +106,10 @@ class TriviaController {
   }
 
   static async getCategories(_, res, next) {
+    /*
+      #swagger.tags = ['Trivia']
+      #swagger.summary = 'Returns the list of categories'
+    */
     try {
       const categories = await TriviaService.getCategories();
 
