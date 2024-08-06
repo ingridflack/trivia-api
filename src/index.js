@@ -4,7 +4,7 @@ import routes from "./routes/index.js";
 import handleRouteNotFound from "./middlewares/handleRouteNotFound.js";
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 
-mongoose.connect("mongodb://mongo:27017/trivia");
+mongoose.connect(process.env.MONGODB_CONNECT_URI);
 
 const connection = mongoose.connection;
 
