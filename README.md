@@ -12,7 +12,21 @@ To generate the trivia, there is an integration with [Open Trivia DB](https://op
     ```bash
     git clone https://github.com/ingridflack/trivia-api.git
     ```
-3. WIP...
+2. Add a .env file following the example below:
+    ```bash
+    JWT_KEY=RANDOM_STRING # Example: b22c93ed9488b610419eb22674486f81c03913cf5ec54b8666f4d53b00fee257
+    ```
+3. Install the dependencies:
+    ```bash
+    yarn
+    ```
+4. Run `yarn up` to build and run the containers
+   
+## Prerequisites
+
+- Node
+- Yarn
+- Docker 
 
 ## Features
 
