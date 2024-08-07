@@ -27,6 +27,8 @@ class TriviaService {
             question: item.question,
             category: item.category,
             difficulty: item.difficulty,
+            correctAnswer: item.correct_answer,
+            incorrectAnswers: item.incorrect_answers,
           },
         },
       }))
@@ -50,7 +52,7 @@ class TriviaService {
       },
       {
         path: "questions",
-        select: "question category difficulty",
+        select: "question category difficulty correctAnswer incorrectAnswers",
       },
     ]);
 
