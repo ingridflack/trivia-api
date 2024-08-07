@@ -1,12 +1,10 @@
 import express from "express";
-import mongoose from "mongoose";
 import routes from "./routes/index.js";
 import handleRouteNotFound from "./middlewares/handleRouteNotFound.js";
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
+import connectDatabase from "./config/dbConnect.js";
 
-mongoose.connect(process.env.MONGODB_CONNECT_URI);
-
-const connection = mongoose.connection;
+const connection = await connectDatabase();
 
 connection.on("error", (error) => {
   console.error("Error", error);
