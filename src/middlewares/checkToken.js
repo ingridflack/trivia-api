@@ -15,6 +15,14 @@ const checkToken = (req, res, next) => {
 
     // Set the userId in the request object.
     const decodedToken = jwt.decode(token, { complete: true });
+
+    const currentTime = Date.now() / 1000;
+    const expirationTime = decodedToken.payload.exp;
+
+    if (currentTime > expirationTime) {
+      throw new BaseError("Token expired", 401);
+    }
+
     req.userId = decodedToken.payload.id;
 
     next();
