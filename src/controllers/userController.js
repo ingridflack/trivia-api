@@ -13,8 +13,7 @@ class UserController {
 
   static async getUser(req, res, next) {
     try {
-      const id = req.params.id;
-      const userData = await UserService.getById(id, next);
+      const userData = await UserService.getById(req.userId, next);
 
       res.status(200).json(userData);
     } catch (err) {
@@ -24,7 +23,6 @@ class UserController {
 
   static async updateUser(req, res, next) {
     try {
-      const id = req.params.id;
       const { name, username, avatar, password } = req.body;
 
       const body = {
@@ -34,7 +32,7 @@ class UserController {
         password,
       };
 
-      const updatedUser = await UserService.update(id, body);
+      const updatedUser = await UserService.update(req.userId, body);
 
       res
         .status(200)
@@ -46,8 +44,7 @@ class UserController {
 
   static async deleteUser(req, res, next) {
     try {
-      const id = req.params.id;
-      const deletedData = await UserService.delete(id);
+      const deletedData = await UserService.delete(req.userId);
       res
         .status(200)
         .json({ message: "Successfully deleted", deleted: deletedData });
