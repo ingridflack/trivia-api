@@ -72,7 +72,13 @@ class AuthService {
       expiresIn: "1h",
     });
 
-    return token;
+    const user = {
+      token,
+      username: userData.username,
+      avatar: userData.avatar,
+    };
+
+    return user;
   }
 }
 

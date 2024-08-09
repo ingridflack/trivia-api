@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import routes from "./routes/index.js";
 import handleRouteNotFound from "./middlewares/handleRouteNotFound.js";
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
@@ -16,6 +17,12 @@ connection.once("open", () => {
 
 const app = express();
 
+const corsOptions = {
+  credentials: true,
+  origin: ["http://localhost:5173"],
+};
+
+app.use(cors(corsOptions)); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
