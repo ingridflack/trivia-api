@@ -2,7 +2,8 @@ import axios from "axios";
 import QuestionModel from "../models/Question.js";
 import TriviaModel from "../models/Trivia.js";
 import User from "../models/User.js";
-import { isTriviaExpired } from "../utils/isTriviaExpired.js";
+import { isTriviaExpired } from "../utils/trivia.js";
+import { shuffleArray } from "../utils/arrays.js";
 import BadRequest from "../errors/BadRequest.js";
 import { USER_LIST_PROJECTION } from "../constants/user.js";
 
@@ -45,18 +46,7 @@ class TriviaService {
       questions: questionIds,
     });
 
-    const populatedTrivia = await trivia.populate([
-      {
-        path: "users",
-        select: "username name avatar",
-      },
-      {
-        path: "questions",
-        select: "question category difficulty correctAnswer incorrectAnswers",
-      },
-    ]);
-
-    return populatedTrivia;
+    return trivia._id;
   }
 
   static async complete({ userId, triviaId, completedTrivia }) {
@@ -145,6 +135,39 @@ class TriviaService {
         select: "question category difficulty",
       },
     ]);
+  }
+
+  static async getTriviaById(triviaId, userId) {
+    const triviaDocument = await TriviaModel.findById(triviaId);
+
+    if (!triviaDocument.users.includes(userId)) {
+      throw new BadRequest("User is not part of the trivia");
+    }
+
+    const triviaPopulatedDocument = await triviaDocument.populate([
+      {
+        path: "questions",
+        select: "question category difficulty correctAnswer incorrectAnswers",
+      },
+    ]);
+
+    const trivia = triviaPopulatedDocument.toObject();
+
+    trivia.questions = trivia.questions.map((question) => {
+      const answers = question.incorrectAnswers.concat(question.correctAnswer);
+
+      delete question.incorrectAnswers;
+      delete question.correctAnswer;
+
+      return {
+        ...question,
+        answers: shuffleArray(answers),
+      };
+    });
+
+    delete trivia.users;
+
+    return trivia;
   }
 
   static async getCategories() {

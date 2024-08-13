@@ -18,7 +18,7 @@ const triviaSchema = new mongoose.Schema({
     enum: ["pending", "expired", "completed"],
     default: "pending",
   },
-  game_mode: {
+  gameMode: {
     type: String,
     enum: ["normal", "infinite"],
     default: "normal",

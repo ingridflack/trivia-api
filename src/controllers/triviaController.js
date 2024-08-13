@@ -14,7 +14,7 @@ class TriviaController {
       });
 
       const questionIds = await TriviaService.saveQuestions(questions);
-      const populatedTrivia = await TriviaService.create({
+      const triviaId = await TriviaService.create({
         userId,
         category,
         difficulty,
@@ -23,7 +23,7 @@ class TriviaController {
 
       res.status(200).json({
         message: "Trivia created successfully",
-        trivia: populatedTrivia,
+        triviaId,
       });
     } catch (err) {
       next(err);
@@ -55,6 +55,20 @@ class TriviaController {
       res.status(200).json({
         message: "The list of trivias was retrieved successfully",
         trivias: user,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getTrivia(req, res, next) {
+    try {
+      const { id } = req.params;
+      const trivia = await TriviaService.getTriviaById(id, req.userId);
+
+      res.status(200).json({
+        message: "Trivia retrieved successfully",
+        trivia,
       });
     } catch (err) {
       next(err);
