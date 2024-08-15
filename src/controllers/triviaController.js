@@ -1,3 +1,4 @@
+import { ANSWER_TIME_LIMIT } from "../constants/trivia.js";
 import TriviaService from "../services/TriviaService.js";
 
 class TriviaController {
@@ -30,18 +31,27 @@ class TriviaController {
     }
   }
 
-  static async completeTrivia(req, res, next) {
+  static async answerQuestion(req, res, next) {
     try {
       const userId = req.userId;
-      const triviaId = req.params.id;
-      const { completedTrivia } = req.body;
+      const { id: triviaId } = req.params;
+      const { answer, answerTime, questionId } = req.body;
 
-      await TriviaService.complete({ userId, triviaId, completedTrivia });
+      const data = await TriviaService.answerQuestion({
+        userId,
+        triviaId,
+        answer,
+        answerTime,
+        questionId,
+      });
 
       res.status(200).json({
-        message: "Trivia saved successfully",
+        message: "Question answered successfully",
+        data,
+        timeOut: answerTime === ANSWER_TIME_LIMIT,
       });
     } catch (err) {
+      console.log(err);
       next(err);
     }
   }

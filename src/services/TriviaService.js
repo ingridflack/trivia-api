@@ -1,19 +1,23 @@
 import axios from "axios";
 import QuestionModel from "../models/Question.js";
 import TriviaModel from "../models/Trivia.js";
-import User from "../models/User.js";
+import UserModel from "../models/User.js";
 import { isTriviaExpired } from "../utils/trivia.js";
 import { shuffleArray } from "../utils/arrays.js";
 import BadRequest from "../errors/BadRequest.js";
 import { USER_LIST_PROJECTION } from "../constants/user.js";
 
+const CATEGORIES_ALLOWLIST = [9, 10, 31, 19, 14];
+
 class TriviaService {
-  static async fetchQuestions({ amount, category, difficulty, type }) {
+  static async fetchQuestions(params) {
     const url = new URL("https://opentdb.com/api.php");
-    url.searchParams.append("amount", amount);
-    url.searchParams.append("category", category);
-    url.searchParams.append("difficulty", difficulty);
-    url.searchParams.append("type", type);
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== "any") {
+        url.searchParams.append(key, value);
+      }
+    });
 
     const { data } = await axios.get(url.toString());
 
@@ -49,32 +53,73 @@ class TriviaService {
     return trivia._id;
   }
 
-  static async complete({ userId, triviaId, completedTrivia }) {
-    const user = await User.findById(userId);
+  static async answerQuestion({
+    userId,
+    triviaId,
+    questionId,
+    answer,
+    answerTime,
+  }) {
+    const user = await UserModel.findById(userId);
 
     if (!user) {
       throw new BadRequest("User not found");
     }
 
-    const isTriviaCompleted = user.triviaHistory.some(
+    const trivia = await TriviaModel.findById(triviaId);
+
+    if (!trivia) {
+      throw new BadRequest("Trivia not found");
+    }
+
+    const question = await QuestionModel.findById(questionId);
+
+    if (!question) {
+      throw new BadRequest("Question not found");
+    }
+
+    const triviaIndex = user.triviaHistory.findIndex(
       (item) => item.trivia.toString() === triviaId
     );
 
-    if (isTriviaCompleted) {
-      throw new BadRequest("Trivia already completed");
+    const isCorrect = question.correctAnswer === answer;
+    const triviaHistoryItem = {
+      question: questionId,
+      isCorrect,
+      answerTime,
+    };
+
+    if (triviaIndex < 0) {
+      user.triviaHistory.push({
+        trivia: triviaId,
+        items: [triviaHistoryItem],
+      });
+    } else {
+      const triviaItems = user.triviaHistory[triviaIndex].items;
+
+      if (triviaItems.some((item) => item.question.toString() === questionId)) {
+        throw new BadRequest("Question already answered");
+      }
+
+      triviaItems.push(triviaHistoryItem);
+
+      const isTriviaCompleted = trivia.questions.length === triviaItems.length;
+
+      // TODO: Verify if it is single or multiplayer before updating trivia status
+
+      if (isTriviaCompleted) {
+        trivia.status = "completed";
+        await trivia.save();
+      }
     }
 
-    user.triviaHistory.push({
-      trivia: triviaId,
-      items: completedTrivia,
-      status: "completed",
-    });
-
     await user.save();
+
+    return { isCorrect, triviaStatus: trivia.status };
   }
 
   static async getHistory(userId) {
-    const user = await User.findById(userId, USER_LIST_PROJECTION)
+    const user = await UserModel.findById(userId, USER_LIST_PROJECTION)
       .populate([
         {
           path: "triviaHistory.trivia",
@@ -173,7 +218,11 @@ class TriviaService {
   static async getCategories() {
     const { data } = await axios.get("https://opentdb.com/api_category.php");
 
-    return data.trivia_categories;
+    const filteredCategories = data.trivia_categories.filter((item) =>
+      CATEGORIES_ALLOWLIST.includes(item.id)
+    );
+
+    return filteredCategories;
   }
 }
 

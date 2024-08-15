@@ -8,6 +8,7 @@ class BaseError extends Error {
 
   sendResponse(res) {
     console.log(`Error: ${this.message} - Status: ${this.status}`);
+    console.error({...this});
 
     res.status(this.status).send({
       message: this.message,
