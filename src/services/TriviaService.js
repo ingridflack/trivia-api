@@ -109,6 +109,10 @@ class TriviaService {
 
       if (isTriviaCompleted) {
         trivia.status = "completed";
+        trivia.score = triviaItems.reduce(
+          (acc, item) => acc + (item.isCorrect ? 1 : 0),
+          0
+        );
         await trivia.save();
       }
     }
@@ -123,7 +127,7 @@ class TriviaService {
       .populate([
         {
           path: "triviaHistory.trivia",
-          select: "category difficulty users",
+          select: "category difficulty users score status",
           populate: {
             path: "users",
             select: "name username avatar",
