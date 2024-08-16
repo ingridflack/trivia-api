@@ -60,11 +60,11 @@ class TriviaController {
     try {
       const userId = req.userId;
 
-      const user = await TriviaService.getHistory(userId);
+      const triviaHistory = await TriviaService.getHistory(userId);
 
       res.status(200).json({
         message: "The list of trivias was retrieved successfully",
-        trivias: user,
+        triviaHistory,
       });
     } catch (err) {
       next(err);

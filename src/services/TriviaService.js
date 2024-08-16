@@ -136,7 +136,7 @@ class TriviaService {
       ])
       .exec();
 
-    return user;
+    return user.triviaHistory;
   }
 
   static async acceptInvite({ userId, id }) {
