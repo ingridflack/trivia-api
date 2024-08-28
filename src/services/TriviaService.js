@@ -89,37 +89,36 @@ class TriviaService {
       answerTime,
     };
 
-    if (triviaIndex < 0) {
-      user.triviaHistory.push({
-        trivia: triviaId,
-        items: [triviaHistoryItem],
-      });
-    } else {
-      const triviaItems = user.triviaHistory[triviaIndex].items;
+    const triviaItems = user.triviaHistory[triviaIndex].items;
 
-      if (triviaItems.some((item) => item.question.toString() === questionId)) {
-        throw new BadRequest("Question already answered");
-      }
-
-      triviaItems.push(triviaHistoryItem);
-
-      const isTriviaCompleted = trivia.questions.length === triviaItems.length;
-
-      // TODO: Verify if it is single or multiplayer before updating trivia status
-
-      if (isTriviaCompleted) {
-        trivia.status = "completed";
-        trivia.score = triviaItems.reduce(
-          (acc, item) => acc + (item.isCorrect ? 1 : 0),
-          0
-        );
-        await trivia.save();
-      }
+    if (triviaItems.some((item) => item.question.toString() === questionId)) {
+      throw new BadRequest("Question already answered");
     }
+
+    triviaItems.push(triviaHistoryItem);
+
+    // TODO: Verify if it is single or multiplayer before updating trivia status
+    const isTriviaCompleted = trivia.questions.length === triviaItems.length;
+    if (isTriviaCompleted) {
+      trivia.status = "completed";
+      trivia.score = triviaItems.reduce(
+        (acc, item) => acc + (item.isCorrect ? 1 : 0),
+        0
+      );
+      await trivia.save();
+    }
+
+    const nextQuestion = await this.getNextQuestion(
+      triviaId,
+      userId,
+      questionId
+    );
+    user.triviaHistory[triviaIndex].currentQuestion = nextQuestion?._id;
+    user.triviaHistory[triviaIndex].completed = isTriviaCompleted;
 
     await user.save();
 
-    return { isCorrect, triviaStatus: trivia.status };
+    return { isCorrect, question: nextQuestion, triviaStatus: trivia.status };
   }
 
   static async getHistory(userId) {
@@ -186,37 +185,64 @@ class TriviaService {
     ]);
   }
 
-  static async getTriviaById(triviaId, userId) {
+  static async getCurrentQuestion(triviaId, userId) {
+    const user = await UserModel.findById(userId);
     const triviaDocument = await TriviaModel.findById(triviaId);
 
     if (!triviaDocument.users.includes(userId)) {
       throw new BadRequest("User is not part of the trivia");
     }
 
-    const triviaPopulatedDocument = await triviaDocument.populate([
-      {
-        path: "questions",
-        select: "question category difficulty correctAnswer incorrectAnswers",
-      },
-    ]);
+    const triviaHistory = user
+      .toObject()
+      .triviaHistory.find((item) => item.trivia.toString() === triviaId);
 
-    const trivia = triviaPopulatedDocument.toObject();
+    if (triviaHistory?.completed) {
+      throw new BadRequest("Trivia already completed");
+    }
 
-    trivia.questions = trivia.questions.map((question) => {
-      const answers = question.incorrectAnswers.concat(question.correctAnswer);
+    const currentQuestionId = !triviaHistory.currentQuestion
+      ? triviaDocument.questions[0]
+      : triviaHistory.currentQuestion;
 
-      delete question.incorrectAnswers;
-      delete question.correctAnswer;
+    const question = await QuestionModel.findById(currentQuestionId);
+    return this.normalizeQuestionResponse(question);
+  }
 
-      return {
-        ...question,
-        answers: shuffleArray(answers),
-      };
-    });
+  static async getNextQuestion(triviaId, userId, currentQuestionId) {
+    const user = await UserModel.findById(userId);
+    const triviaDocument = await TriviaModel.findById(triviaId);
 
-    delete trivia.users;
+    if (!triviaDocument.users.includes(userId)) {
+      throw new BadRequest("User is not part of the trivia");
+    }
 
-    return trivia;
+    const triviaHistory = user
+      .toObject()
+      .triviaHistory.find((item) => item.trivia.toString() === triviaId);
+
+    if (triviaHistory?.completed) {
+      throw new BadRequest("Trivia already completed");
+    }
+
+    const currentQuestionIndex = triviaDocument.questions.findIndex(
+      (question) => question.toString() === currentQuestionId
+    );
+
+    if (currentQuestionIndex < 0) {
+      throw new BadRequest("Question not found");
+    }
+
+    const nextQuestionIndex = currentQuestionIndex + 1;
+
+    if (nextQuestionIndex >= triviaDocument.questions.length) {
+      return null;
+    }
+
+    const questionId = triviaDocument.questions[nextQuestionIndex].toString();
+    const question = await QuestionModel.findById(questionId);
+
+    return this.normalizeQuestionResponse(question);
   }
 
   static async getCategories() {
@@ -227,6 +253,19 @@ class TriviaService {
     );
 
     return filteredCategories;
+  }
+
+  static normalizeQuestionResponse(questionDocument) {
+    const question = questionDocument.toObject();
+    const answers = question.incorrectAnswers.concat(question.correctAnswer);
+
+    delete question.incorrectAnswers;
+    delete question.correctAnswer;
+
+    return {
+      ...question,
+      answers: shuffleArray(answers),
+    };
   }
 }
 

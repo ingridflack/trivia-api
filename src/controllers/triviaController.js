@@ -1,5 +1,6 @@
 import { ANSWER_TIME_LIMIT } from "../constants/trivia.js";
 import TriviaService from "../services/TriviaService.js";
+import UserService from "../services/UserService.js";
 
 class TriviaController {
   static async createTrivia(req, res, next) {
@@ -21,6 +22,8 @@ class TriviaController {
         difficulty,
         questionIds,
       });
+
+      await UserService.addTrivia(userId, triviaId);
 
       res.status(200).json({
         message: "Trivia created successfully",
@@ -74,11 +77,11 @@ class TriviaController {
   static async getTrivia(req, res, next) {
     try {
       const { id } = req.params;
-      const trivia = await TriviaService.getTriviaById(id, req.userId);
+      const question = await TriviaService.getCurrentQuestion(id, req.userId);
 
       res.status(200).json({
         message: "Trivia retrieved successfully",
-        trivia,
+        question,
       });
     } catch (err) {
       next(err);
@@ -94,6 +97,8 @@ class TriviaController {
         userId,
         id,
       });
+
+      await UserService.addTrivia(userId, id);
 
       res.status(200).json({
         message: "Successfully accepted challenge",
