@@ -2,9 +2,16 @@ import "dotenv/config";
 import UserService from "../services/UserService.js";
 
 class UserController {
-  static async listUsers(_, res, next) {
+  static async listUsers(req, res, next) {
     try {
-      const userList = await UserService.list();
+      const params = {};
+      const username = req.query.username;
+
+      if (username) {
+        params.username = { $regex: username, $options: "i" };
+      }
+
+      const userList = await UserService.findBy(params);
       res.send(userList);
     } catch (err) {
       next(err);

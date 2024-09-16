@@ -4,8 +4,8 @@ import { USER_LIST_PROJECTION } from "../constants/user.js";
 import TriviaService from "./TriviaService.js";
 
 class UserService {
-  static async list() {
-    return await UserModel.find({});
+  static async findBy(params) {
+    return UserModel.find(params, "_id username");
   }
 
   static async getById(id) {

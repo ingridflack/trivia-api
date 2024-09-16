@@ -42,9 +42,18 @@ class TriviaService {
     return Object.values(result.insertedIds);
   }
 
-  static async create({ userId, category, difficulty, questionIds }) {
+  static async create({
+    userId,
+    category,
+    difficulty,
+    questionIds,
+    invitedUsers,
+  }) {
+    const users = new Set([userId, ...(invitedUsers ?? [])]);
+    console.log({ users, array: Array.from(users) });
+
     const trivia = await TriviaModel.create({
-      users: [userId],
+      users: Array.from(users),
       category,
       difficulty,
       questions: questionIds,
@@ -126,7 +135,7 @@ class TriviaService {
       .populate([
         {
           path: "triviaHistory.trivia",
-          select: "category difficulty users score status",
+          select: "category difficulty users score status createdAt",
           populate: {
             path: "users",
             select: "name username avatar",
@@ -171,18 +180,7 @@ class TriviaService {
 
     trivia.users.push(userId);
 
-    const updatedTrivia = await trivia.save();
-
-    return await updatedTrivia.populate([
-      {
-        path: "users",
-        select: "username name avatar",
-      },
-      {
-        path: "questions",
-        select: "question category difficulty",
-      },
-    ]);
+    await trivia.save();
   }
 
   static async getCurrentQuestion(triviaId, userId) {

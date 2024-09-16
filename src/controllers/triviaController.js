@@ -6,7 +6,7 @@ class TriviaController {
   static async createTrivia(req, res, next) {
     try {
       const userId = req.userId;
-      const { amount, category, difficulty, type } = req.query;
+      const { amount, category, difficulty, type, invitedUsers } = req.body;
 
       const questions = await TriviaService.fetchQuestions({
         amount,
@@ -21,6 +21,7 @@ class TriviaController {
         category,
         difficulty,
         questionIds,
+        invitedUsers,
       });
 
       await UserService.addTrivia(userId, triviaId);
@@ -88,12 +89,19 @@ class TriviaController {
     }
   }
 
+  static async inviteFriends(req, res, next) {
+    const usernameList = req.body.usernameList;
+    const triviaId = req.params.id;
+
+    console.log({ friendId });
+  }
+
   static async acceptInvite(req, res, next) {
     try {
       const userId = req.userId;
       const { id } = req.params;
 
-      const trivia = await TriviaService.acceptInvite({
+      await TriviaService.acceptInvite({
         userId,
         id,
       });
@@ -102,7 +110,6 @@ class TriviaController {
 
       res.status(200).json({
         message: "Successfully accepted challenge",
-        trivia,
       });
     } catch (err) {
       next(err);

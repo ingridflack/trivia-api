@@ -9,15 +9,15 @@ class AuthService {
     const { password, passwordConfirmation } = body;
 
     if (password !== passwordConfirmation) {
-      throw new BadRequest("Passwords do not match");
+      throw new BadRequest("The password confirmation does not match");
     }
 
-    const emailAlreadyExists = await UserModel.findOne({
-      email: body.email,
+    const userWithSameCredentials = await UserModel.findOne({
+      $or: [{ email: body.email }, { username: body.username }],
     });
 
-    if (emailAlreadyExists) {
-      throw new BadRequest("E-mail already exists");
+    if (userWithSameCredentials) {
+      throw new BadRequest("E-mail or username already exists");
     }
 
     const error = new UserModel(body).validateSync();
@@ -73,8 +73,9 @@ class AuthService {
     });
 
     const user = {
-      username: userData.username,
+      id: userData._id,
       avatar: userData.avatar,
+      username: userData.username,
     };
 
     return { token, user };
