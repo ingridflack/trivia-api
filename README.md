@@ -40,8 +40,8 @@ To generate the trivia, there is an integration with [Open Trivia DB](https://op
 - Invite friends to play;
 - Complete the Trivia;
 - Get all possible Trivia categories.
+- Account recovery;
 
 ## Features in progress
 
 - Unit tests;
-- Account recovery.
