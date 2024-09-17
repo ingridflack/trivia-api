@@ -5,6 +5,8 @@ import ValidationError from "../errors/ValidationError.js";
 
 // eslint-disable-next-line no-unused-vars
 function globalErrorHandler(err, req, res, next) {
+  console.log(err);
+
   if (err instanceof mongoose.Error.CastError)
     return new BadRequest().sendResponse(res);
 

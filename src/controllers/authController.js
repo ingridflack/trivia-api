@@ -26,6 +26,31 @@ class AuthController {
       next(err);
     }
   }
+
+  static async requestRecoveryPasswordLink(req, res, next) {
+    try {
+      const { email } = req.body;
+
+      await AuthService.requestRecoveryPasswordLink(email);
+
+      res.status(200).json({ message: "Recovery email sent" });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async resetPasswordData(req, res, next) {
+    try {
+      const { token } = req.params;
+      const { password, passwordConfirmation } = req.body;
+
+      await AuthService.resetPassword(token, password, passwordConfirmation);
+
+      res.status(200).json({ message: "Password successfully changed" });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export default AuthController;

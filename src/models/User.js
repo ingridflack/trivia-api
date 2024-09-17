@@ -39,6 +39,10 @@ export const userSchema = new mongoose.Schema({
     required: [true, "Password is required."],
     minlength: [8, "Password must be at least 8 characters long"],
   },
+  resetPassword: {
+    token: { type: String },
+    expiration: { type: Date },
+  },
   triviaHistory: [triviaHistorySchema],
   avatar: { type: String, required: [false] },
   score: { type: Number },
