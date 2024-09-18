@@ -9,6 +9,7 @@ const triviaHistoryItemSchema = new mongoose.Schema({
 const triviaHistorySchema = new mongoose.Schema({
   trivia: { type: mongoose.Schema.Types.ObjectId, ref: "Trivia" },
   currentQuestion: { type: mongoose.Schema.Types.ObjectId, ref: "Question" },
+  completed: { type: Boolean },
   items: [triviaHistoryItemSchema],
 });
 

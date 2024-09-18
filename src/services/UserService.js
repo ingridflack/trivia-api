@@ -1,7 +1,6 @@
 import NotFound from "../errors/NotFound.js";
 import UserModel from "../models/User.js";
 import { USER_LIST_PROJECTION } from "../constants/user.js";
-import TriviaService from "./TriviaService.js";
 
 class UserService {
   static async findBy(params) {
@@ -43,26 +42,29 @@ class UserService {
     return deletedData;
   }
 
-  static async addTrivia(userId, triviaId) {
-    const user = await UserModel.findById(userId);
+  static async addTrivia(users, triviaId) {
+    for (const userId of users) {
+      const user = await UserModel.findById(userId);
 
-    if (!user) {
-      throw new NotFound("User not found");
+      if (!user) {
+        throw new NotFound("User not found");
+      }
+
+      const triviaExists = user.triviaHistory.find(
+        (trivia) => trivia.trivia.toString() === triviaId
+      );
+
+      if (triviaExists) continue;
+
+      user.triviaHistory.push({
+        trivia: triviaId,
+        currentQuestion: null,
+        items: [],
+        completed: false,
+      });
+
+      await user.save();
     }
-
-    const triviaExists = user.triviaHistory.find(
-      (trivia) => trivia.trivia.toString() === triviaId
-    );
-
-    if (triviaExists) return;
-
-    user.triviaHistory.push({
-      trivia: triviaId,
-      currentQuestion: null,
-      items: [],
-    });
-
-    await user.save();
   }
 }
 

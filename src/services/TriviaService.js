@@ -2,7 +2,6 @@ import axios from "axios";
 import QuestionModel from "../models/Question.js";
 import TriviaModel from "../models/Trivia.js";
 import UserModel from "../models/User.js";
-import { isTriviaExpired } from "../utils/trivia.js";
 import { shuffleArray } from "../utils/arrays.js";
 import BadRequest from "../errors/BadRequest.js";
 import { USER_LIST_PROJECTION } from "../constants/user.js";
@@ -42,18 +41,9 @@ class TriviaService {
     return Object.values(result.insertedIds);
   }
 
-  static async create({
-    userId,
-    category,
-    difficulty,
-    questionIds,
-    invitedUsers,
-  }) {
-    const users = new Set([userId, ...(invitedUsers ?? [])]);
-    console.log({ users, array: Array.from(users) });
-
+  static async create({ users, category, difficulty, questionIds }) {
     const trivia = await TriviaModel.create({
-      users: Array.from(users),
+      users,
       category,
       difficulty,
       questions: questionIds,
@@ -106,28 +96,59 @@ class TriviaService {
 
     triviaItems.push(triviaHistoryItem);
 
-    // TODO: Verify if it is single or multiplayer before updating trivia status
-    const isTriviaCompleted = trivia.questions.length === triviaItems.length;
-    if (isTriviaCompleted) {
-      trivia.status = "completed";
-      trivia.score = triviaItems.reduce(
-        (acc, item) => acc + (item.isCorrect ? 1 : 0),
-        0
-      );
-      await trivia.save();
-    }
-
     const nextQuestion = await this.getNextQuestion(
       triviaId,
       userId,
       questionId
     );
+
+    const triviaCompletedByUser =
+      trivia.questions.length === triviaItems.length;
     user.triviaHistory[triviaIndex].currentQuestion = nextQuestion?._id;
-    user.triviaHistory[triviaIndex].completed = isTriviaCompleted;
+    user.triviaHistory[triviaIndex].completed = triviaCompletedByUser;
 
     await user.save();
 
-    return { isCorrect, question: nextQuestion, triviaStatus: trivia.status };
+    // TODO: Verify if it is single or multiplayer before updating trivia status
+    if (triviaCompletedByUser) {
+      const updatedTrivia = await TriviaModel.findById(triviaId)
+        .populate([
+          {
+            path: "users",
+            select: "triviaHistory",
+          },
+        ])
+        .exec();
+
+      const triviaUsers = updatedTrivia.users;
+
+      const isTriviaCompleted = triviaUsers.every((triviaUser) => {
+        const currentTrivia = triviaUser.triviaHistory.find(
+          (history) => history.trivia.toString() === trivia._id.toString()
+        );
+
+        if (!currentTrivia) return false;
+
+        return currentTrivia.completed;
+      });
+
+      console.log("IS TRIVIA COMPLETED:", isTriviaCompleted);
+
+      if (isTriviaCompleted) {
+        trivia.status = "completed";
+        user.score = triviaItems.reduce(
+          (acc, item) => acc + (item.isCorrect ? 1 : 0),
+          0
+        );
+        await trivia.save();
+      }
+    }
+
+    return {
+      isCorrect,
+      question: nextQuestion,
+      completed: triviaCompletedByUser,
+    };
   }
 
   static async getHistory(userId) {
@@ -149,38 +170,6 @@ class TriviaService {
       .exec();
 
     return user.triviaHistory;
-  }
-
-  static async acceptInvite({ userId, id }) {
-    const trivia = await TriviaModel.findById(id);
-
-    if (!trivia) {
-      throw new BadRequest("Trivia not found");
-    }
-
-    if (trivia.status === "expired") {
-      throw new BadRequest("Trivia has expired");
-    }
-
-    if (trivia.status === "completed") {
-      throw new BadRequest("Trivia has already been completed");
-    }
-
-    const triviaIsExpired = isTriviaExpired(trivia);
-
-    if (triviaIsExpired) {
-      trivia.status = "expired";
-      await trivia.save();
-      throw new BadRequest("Trivia has expired");
-    }
-
-    if (trivia.users.includes(userId)) {
-      throw new BadRequest("User already accepted the invitation");
-    }
-
-    trivia.users.push(userId);
-
-    await trivia.save();
   }
 
   static async getCurrentQuestion(triviaId, userId) {
@@ -264,6 +253,21 @@ class TriviaService {
       ...question,
       answers: shuffleArray(answers),
     };
+  }
+
+  static async getPendingTrivia(userId) {
+    const user = await UserModel.findById(userId, "triviaHistory.trivia")
+      .populate({
+        path: "triviaHistory.trivia",
+        select: "_id users category difficulty",
+        populate: {
+          path: "users",
+          select: "username avatar",
+        },
+      })
+      .exec();
+
+    return user.triviaHistory.filter((item) => !item.completed);
   }
 }
 

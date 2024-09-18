@@ -8,6 +8,8 @@ class TriviaController {
       const userId = req.userId;
       const { amount, category, difficulty, type, invitedUsers } = req.body;
 
+      const users = Array.from(new Set([userId, ...(invitedUsers ?? [])]));
+
       const questions = await TriviaService.fetchQuestions({
         amount,
         category,
@@ -17,14 +19,13 @@ class TriviaController {
 
       const questionIds = await TriviaService.saveQuestions(questions);
       const triviaId = await TriviaService.create({
-        userId,
+        users,
         category,
         difficulty,
         questionIds,
-        invitedUsers,
       });
 
-      await UserService.addTrivia(userId, triviaId);
+      await UserService.addTrivia(users, triviaId);
 
       res.status(200).json({
         message: "Trivia created successfully",
@@ -51,11 +52,12 @@ class TriviaController {
 
       res.status(200).json({
         message: "Question answered successfully",
-        data,
-        timeOut: answerTime === ANSWER_TIME_LIMIT,
+        data: {
+          ...data,
+          timeOut: answerTime === ANSWER_TIME_LIMIT,
+        },
       });
     } catch (err) {
-      console.log(err);
       next(err);
     }
   }
@@ -96,26 +98,6 @@ class TriviaController {
     console.log({ friendId });
   }
 
-  static async acceptInvite(req, res, next) {
-    try {
-      const userId = req.userId;
-      const { id } = req.params;
-
-      await TriviaService.acceptInvite({
-        userId,
-        id,
-      });
-
-      await UserService.addTrivia(userId, id);
-
-      res.status(200).json({
-        message: "Successfully accepted challenge",
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-
   static async getCategories(_, res, next) {
     try {
       const categories = await TriviaService.getCategories();
@@ -123,6 +105,21 @@ class TriviaController {
       res.status(200).json({
         message: "Categories retrieved successfully",
         categories: categories,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getPendingTrivia(req, res, next) {
+    try {
+      const userId = req.userId;
+
+      const pendingTrivia = await TriviaService.getPendingTrivia(userId);
+
+      res.status(200).json({
+        message: "Pending trivias retrieved successfully",
+        pendingTrivia,
       });
     } catch (err) {
       next(err);

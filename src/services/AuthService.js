@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 import BadRequest from "../errors/BadRequest.js";
 import NotFound from "../errors/NotFound.js";
 import { HOUR } from "../constants/time.js";
-import { transporter } from "../config/nodemailerConfig.js";
 class AuthService {
   static async register(body) {
     const { password, passwordConfirmation } = body;

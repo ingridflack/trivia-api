@@ -9,7 +9,6 @@ const triviaSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
-  score: { type: Number },
   category: { type: String, required: [true, "Category is required."] },
   difficulty: { type: String, required: [true, "Difficulty is required."] },
   questions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
