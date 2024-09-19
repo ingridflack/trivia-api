@@ -20,6 +20,10 @@ class TriviaService {
 
     const { data } = await axios.get(url.toString());
 
+    if (data.results.length === 0) {
+      throw new BadRequest("No questions found with the provided parameters");
+    }
+    
     return data.results;
   }
 
@@ -109,7 +113,6 @@ class TriviaService {
 
     await user.save();
 
-    // TODO: Verify if it is single or multiplayer before updating trivia status
     if (triviaCompletedByUser) {
       const updatedTrivia = await TriviaModel.findById(triviaId)
         .populate([
@@ -131,8 +134,6 @@ class TriviaService {
 
         return currentTrivia.completed;
       });
-
-      console.log("IS TRIVIA COMPLETED:", isTriviaCompleted);
 
       if (isTriviaCompleted) {
         trivia.status = "completed";
@@ -256,7 +257,10 @@ class TriviaService {
   }
 
   static async getPendingTrivia(userId) {
-    const user = await UserModel.findById(userId, "triviaHistory.trivia")
+    const user = await UserModel.findById(
+      userId,
+      "triviaHistory.trivia triviaHistory.completed"
+    )
       .populate({
         path: "triviaHistory.trivia",
         select: "_id users category difficulty",
