@@ -23,7 +23,7 @@ class TriviaService {
     if (data.results.length === 0) {
       throw new BadRequest("No questions found with the provided parameters");
     }
-    
+
     return data.results;
   }
 
@@ -125,6 +125,15 @@ class TriviaService {
 
       const triviaUsers = updatedTrivia.users;
 
+      const userScore = user.triviaHistory[triviaIndex].items.reduce(
+        (acc, item) => (item.isCorrect ? acc + 1 : acc),
+        0
+      );
+
+      user.triviaHistory[triviaIndex].score = userScore;
+
+      await user.save();
+
       const isTriviaCompleted = triviaUsers.every((triviaUser) => {
         const currentTrivia = triviaUser.triviaHistory.find(
           (history) => history.trivia.toString() === trivia._id.toString()
@@ -137,10 +146,7 @@ class TriviaService {
 
       if (isTriviaCompleted) {
         trivia.status = "completed";
-        user.score = triviaItems.reduce(
-          (acc, item) => acc + (item.isCorrect ? 1 : 0),
-          0
-        );
+
         await trivia.save();
       }
     }

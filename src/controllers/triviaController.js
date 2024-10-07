@@ -91,13 +91,6 @@ class TriviaController {
     }
   }
 
-  static async inviteFriends(req, res, next) {
-    const usernameList = req.body.usernameList;
-    const triviaId = req.params.id;
-
-    console.log({ friendId });
-  }
-
   static async getCategories(_, res, next) {
     try {
       const categories = await TriviaService.getCategories();

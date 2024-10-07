@@ -11,6 +11,7 @@ const triviaHistorySchema = new mongoose.Schema({
   currentQuestion: { type: mongoose.Schema.Types.ObjectId, ref: "Question" },
   completed: { type: Boolean },
   items: [triviaHistoryItemSchema],
+  score: { type: Number },
 });
 
 export const userSchema = new mongoose.Schema({
@@ -46,7 +47,6 @@ export const userSchema = new mongoose.Schema({
   },
   triviaHistory: [triviaHistorySchema],
   avatar: { type: String, required: [false] },
-  score: { type: Number },
   createdAt: { type: Date, default: Date.now },
 });
 
