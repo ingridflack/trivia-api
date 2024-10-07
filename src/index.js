@@ -19,7 +19,10 @@ const app = express();
 
 const corsOptions = {
   credentials: true,
-  origin: ["http://localhost:5173", "https://trivia-app-two-mu.vercel.app"],
+  origin: [
+    "http://localhost:5173",
+    "https://trivia-1qosgc6ci-ingridflacks-projects.vercel.app",
+  ],
 };
 
 app.use(cors(corsOptions));
